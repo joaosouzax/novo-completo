@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Fogos Premium</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e1b4b 0%, #7c3aed 50%, #1e1b4b 100%); min-height: 100vh; color: #fff; }
+        .login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .login-box { background: rgba(30, 27, 75, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+        .logo { width: 80px; height: 80px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 24px; }
+        h1 { text-align: center; font-size: 32px; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #9ca3af; margin-bottom: 32px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #d1d5db; }
+        input, textarea, select { width: 100%; padding: 12px 16px; background: rgba(30, 27, 75, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; font-size: 16px; transition: all 0.3s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1); }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; border-radius: 12px; color: #1e1b4b; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3); }
+        button:active { transform: translateY(0); }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: rgba(30, 27, 75, 0.8); backdrop-filter: blur(10px); border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 24px; }
+        .sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+        .sidebar-logo { width: 48px; height: 48px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: transparent; border: none; color: #9ca3af; font-size: 16px; text-align: left; width: 100%; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+        .nav-item.active { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1e1b4b; font-weight: 600; }
+        .nav-item span:first-child { font-size: 24px; }
+        .logout-btn { margin-top: 24px; background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .main-content { flex: 1; padding: 32px; overflow-y: auto; }
+        .page-header h2 { font-size: 36px; margin-bottom: 8px; }
+        .page-header p { color: #9ca3af; font-size: 16px; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+        .btn-primary { padding: 12px 24px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; border-radius: 12px; color: #1e1b4b; font-weight: 700; cursor: pointer; width: auto; }
+        .btn-export { padding: 12px 24px; background: rgba(34, 197, 94, 0.2); border: none; border-radius: 12px; color: #22c55e; font-weight: 700; cursor: pointer; width: auto; }
+        .btn-import { padding: 12px 24px; background: rgba(59, 130, 246, 0.2); border: none; border-radius: 12px; color: #3b82f6; font-weight: 700; cursor: pointer; width: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: rgba(30, 27, 75, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; }
+        .stat-label { color: #9ca3af; font-size: 14px; margin-bottom: 8px; }
+        .stat-value { font-size: 36px; font-weight: 700; }
+        .card { background: rgba(30, 27, 75, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 8px; display: inline-block; }
+        .badge-sku { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .badge-stock-high { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-stock-medium { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .badge-stock-low { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-entry { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .badge-exit { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .card-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .card-description { color: #9ca3af; font-size: 14px; margin-bottom: 16px; }
+        .card-price { font-size: 28px; font-weight: 700; color: #fbbf24; }
+        .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-icon { width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 10px; }
+        .btn-edit { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .btn-delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .btn-barcode { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .btn-qr { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
+        .btn-entry { flex: 1; background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 12px; font-weight: 600; }
+        .btn-exit { flex: 1; background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 12px; font-weight: 600; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: rgba(30, 27, 75, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-size: 24px; margin-bottom: 24px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .btn-group { display: flex; gap: 12px; margin-top: 24px; }
+        .btn-cancel { flex: 1; background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+        .btn-save { flex: 1; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1e1b4b; }
+        .products-grid { display: grid; gap: 16px; }
+        .movements-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .movements-table th, .movements-table td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .movements-table th { background: rgba(255, 255, 255, 0.05); font-weight: 600; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .loading-spinner { width: 60px; height: 60px; border: 4px solid rgba(251, 191, 36, 0.2); border-top: 4px solid #fbbf24; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { margin-top: 20px; font-size: 18px; color: #fbbf24; }
+        .loading-progress { margin-top: 10px; font-size: 14px; color: #9ca3af; }
+        #qrcode-container { display: flex; justify-content: center; align-items: center; min-height: 320px; background: white; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .barcode-modal { text-align: center; }
+        .barcode-modal svg, .barcode-modal canvas { margin: 20px auto; background: white; padding: 20px; border-radius: 12px; display: block; }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -280px; top: 0; height: 100vh; transition: left 0.3s; z-index: 100; }
+            .main-content { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .movements-table { font-size: 14px; }
+            .movements-table th, .movements-table td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const state = { token: null, currentPage: 'dashboard', currentUser: 'Admin', products: [], suppliers: [], rawMaterials: [], movements: [] };
+        let storage = {};
+
+        function save() { storage = {...state}; }
+        function load() { if (storage.token) { Object.assign(state, storage); return true; } return false; }
+        function fmt(v) { return v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); }
+        function fmtDate(d) { return new Date(d).toLocaleDateString('pt-BR'); }
+
+        function loadDemo() {
+            state.products = [
+                {id: 1, sku: 'FW001', name: 'Fogos Cascata Grande', description: 'Efeito cascata com duracao de 60 segundos', stock: 150, price: 89.90},
+                {id: 2, sku: 'FW002', name: 'Rojao Bomba', description: 'Alto poder de detonacao', stock: 45, price: 12.50},
+                {id: 3, sku: 'FW003', name: 'Chuva de Prata', description: 'Efeito visual espetacular', stock: 200, price: 45.00},
+                {id: 4, sku: 'FW004', name: 'Morteiro 12 Tiros', description: 'Lancamento vertical com cores variadas', stock: 30, price: 125.00},
+                {id: 5, sku: 'FW005', name: 'Sparkler Dourado', description: 'Duracao de 2 minutos', stock: 500, price: 3.50}
+            ];
+            state.suppliers = [
+                {id: 1, name: 'Pirotecnia Brasil Ltda', contact: '(11) 98765-4321', notes: 'Fornecedor principal'},
+                {id: 2, name: 'Fogos & Cia', contact: '(21) 99876-5432', notes: 'Bons precos'}
+            ];
+            state.rawMaterials = [
+                {id: 1, code: 'MP-001', name: 'Polvora Negra', stock: 500, unit: 'kg', minStock: 100, maxStock: 1000, unitPrice: 25.00},
+                {id: 2, code: 'MP-002', name: 'Estopim', stock: 2000, unit: 'm', minStock: 500, maxStock: 3000, unitPrice: 0.50}
+            ];
+            state.movements = [
+                {id: 1, productId: 1, productName: 'Fogos Cascata Grande', type: 'entrada', quantity: 50, date: '2025-10-10', notes: 'Compra fornecedor'},
+                {id: 2, productId: 2, productName: 'Rojao Bomba', type: 'saida', quantity: 20, date: '2025-10-12', notes: 'Venda cliente XYZ'}
+            ];
+            save();
+        }
+
+        function showLoading(msg, prog = '') {
+            const el = document.createElement('div');
+            el.className = 'loading-overlay';
+            el.id = 'loadingOverlay';
+            el.innerHTML = `<div class="loading-spinner"></div><div class="loading-text">${msg}</div><div class="loading-progress" id="loadingProgress">${prog}</div>`;
+            document.body.appendChild(el);
+        }
+
+        function updateLoading(prog) {
+            const el = document.getElementById('loadingProgress');
+            if (el) el.textContent = prog;
+        }
+
+        function hideLoading() {
+            const el = document.getElementById('loadingOverlay');
+            if (el) el.remove();
+        }
+
+        async function genQR(p) {
+            return new Promise((resolve) => {
+                try {
+                    const data = `SKU:${p.sku}|NOME:${p.name}|PRECO:R$${p.price.toFixed(2)}|ESTOQUE:${p.stock}`;
+                    const id = 'qr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    const div = document.createElement('div');
+                    div.id = id;
+                    div.style.cssText = 'position:absolute;left:-9999px;width:200px;height:200px';
+                    document.body.appendChild(div);
+                    
+                    setTimeout(() => {
+                        try {
+                            new QRCode(div, { text: data, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+                            setTimeout(() => {
+                                const canvas = div.querySelector('canvas');
+                                const result = canvas ? canvas.toDataURL('image/png') : null;
+                                if (document.body.contains(div)) document.body.removeChild(div);
+                                resolve(result);
+                            }, 800);
+                        } catch (err) {
+                            if (document.body.contains(div)) document.body.removeChild(div);
+                            resolve(null);
+                        }
+                    }, 100);
+                } catch (err) { resolve(null); }
+            });
+        }
+
+        async function genBarcode(sku) {
+            return new Promise((resolve) => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    JsBarcode(canvas, sku, { format: "CODE128", width: 2, height: 80, displayValue: true, fontSize: 14, margin: 5, background: '#FFFFFF' });
+                    resolve(canvas.toDataURL('image/png'));
+                } catch (err) { resolve(null); }
+            });
+        }
+
+        async function exportExcel() {
+            try {
+                if (typeof ExcelJS === 'undefined') { alert('Erro: Biblioteca ExcelJS nao carregada.'); return; }
+                showLoading('Preparando exportacao...', '0%');
+                
+                const wb = new ExcelJS.Workbook();
+                const ws = wb.addWorksheet('Produtos');
+                ws.columns = [
+                    { header: 'QR Code', key: 'qrcode', width: 30 },
+                    { header: 'Codigo de Barras', key: 'barcode', width: 30 },
+                    { header: 'SKU', key: 'sku', width: 15 },
+                    { header: 'Nome', key: 'name', width: 30 },
+                    { header: 'Descricao', key: 'description', width: 40 },
+                    { header: 'Estoque', key: 'stock', width: 12 },
+                    { header: 'Preco', key: 'price', width: 15 },
+                    { header: 'Valor Total', key: 'total', width: 15 }
+                ];
+                
+                ws.getRow(1).font = { bold: true, size: 12, color: { argb: 'FF1E1B4B' } };
+                ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBBF24' } };
+                ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+                ws.getRow(1).height = 25;
+                
+                updateLoading('Gerando codigos...');
+                const qrs = [], bars = [];
+                
+                for (let i = 0; i < state.products.length; i++) {
+                    const p = state.products[i];
+                    updateLoading(`Gerando... ${Math.round(((i + 1) / state.products.length) * 50)}% (${i + 1}/${state.products.length})`);
+                    qrs.push(await genQR(p));
+                    bars.push(await genBarcode(p.sku));
+                }
+                
+                updateLoading('Montando planilha...');
+                for (let i = 0; i < state.products.length; i++) {
+                    const p = state.products[i];
+                    updateLoading(`Inserindo... ${50 + Math.round(((i + 1) / state.products.length) * 50)}% (${i + 1}/${state.products.length})`);
+                    
+                    const row = ws.addRow({ qrcode: '', barcode: '', sku: p.sku, name: p.name, description: p.description, stock: p.stock, price: p.price, total: p.stock * p.price });
+                    row.height = 170;
+                    row.alignment = { vertical: 'middle', horizontal: 'left' };
+                    
+                    if (qrs[i]) {
+                        try {
+                            const imgId = wb.addImage({ base64: qrs[i].replace(/^data:image\/png;base64,/, ''), extension: 'png' });
+                            ws.addImage(imgId, { tl: { col: 0.05, row: i + 1.05 }, ext: { width: 160, height: 160 } });
+                        } catch (err) {}
+                    }
+                    
+                    if (bars[i]) {
+                        try {
+                            const imgId = wb.addImage({ base64: bars[i].replace(/^data:image\/png;base64,/, ''), extension: 'png' });
+                            ws.addImage(imgId, { tl: { col: 1.1, row: i + 1.3 }, ext: { width: 180, height: 90 } });
+                        } catch (err) {}
+                    }
+                }
+                
+                ws.getColumn(7).numFmt = 'R$ #,##0.00';
+                ws.getColumn(8).numFmt = 'R$ #,##0.00';
+                
+                updateLoading('Finalizando...');
+                const buffer = await wb.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `produtos_${Date.now()}.xlsx`;
+                link.click();
+                
+                hideLoading();
+                alert(`Exportacao concluida!\n${state.products.length} produtos\n${qrs.filter(q => q).length} QR Codes\n${bars.filter(b => b).length} Codigos de Barras`);
+            } catch (err) {
+                hideLoading();
+                alert('Erro: ' + err.message);
+            }
+        }
+
+        function importExcel() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                showLoading('Importando...', 'Lendo...');
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        try {
+                            const data = new Uint8Array(ev.target.result);
+                            const wb = XLSX.read(data, { type: 'array' });
+                            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                            updateLoading(`Processando ${json.length} registros...`);
+                            let ok = 0, err = 0;
+                            for (let i = 0; i < json.length; i++) {
+                                const r = json[i];
+                                updateLoading(`${i + 1}/${json.length}...`);
+                                try {
+                                    const prod = {
+                                        id: Date.now() + i,
+                                        sku: r.SKU || r.sku || `SKU${Date.now()}${i}`,
+                                        name: r.Nome || r.name || r.NOME || 'Produto',
+                                        description: r.Descricao || r.description || r.DESCRICAO || '',
+                                        stock: parseInt(r.Estoque || r.stock || r.ESTOQUE || 0),
+                                        price: parseFloat(r.Preco || r.price || r.PRECO || 0)
+                                    };
+                                    const ex = state.products.find(p => p.sku === prod.sku);
+                                    if (ex) Object.assign(ex, prod);
+                                    else state.products.push(prod);
+                                    ok++;
+                                } catch (e) { err++; }
+                            }
+                            save();
+                            hideLoading();
+                            alert(`Importacao concluida!\n${ok} produtos\n${err} erros`);
+                            render();
+                        } catch (e) {
+                            hideLoading();
+                            alert('Erro: ' + e.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                } catch (e) {
+                    hideLoading();
+                    alert('Erro: ' + e.message);
+                }
+            };
+            input.click();
+        }
+
+        function renderLogin() {
+            return `<div class="login-container"><div class="login-box"><div class="logo">🎆</div><h1>ERP Fogos</h1><p class="subtitle">Sistema de Gestão Premium</p><div class="form-group"><label>Usuário</label><input type="text" id="username" value="admin"></div><div class="form-group"><label>Senha</label><input type="password" id="password" value="admin"></div><button onclick="login()">Entrar</button></div></div>`;
+        }
+
+        function getBadge(stock) { if (stock >= 100) return 'badge-stock-high'; if (stock >= 50) return 'badge-stock-medium'; return 'badge-stock-low'; }
+
+        function renderProducts() {
+            return `<div class="main-content"><div class="header-actions"><div class="page-header"><h2>Produtos</h2><p>Catálogo de fogos</p></div><div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn-primary" onclick="openProd()">+ Novo</button><button class="btn-export" onclick="exportExcel()">📊 Exportar</button><button class="btn-import" onclick="importExcel()">📥 Importar</button></div></div><div class="products-grid">${state.products.map(p => `<div class="card"><div class="card-header"><div><span class="badge badge-sku">${p.sku}</span><span class="badge ${getBadge(p.stock)}">Estoque: ${p.stock}</span></div></div><h3 class="card-title">${p.name}</h3><p class="card-description">${p.description}</p><div class="card-price">${fmt(p.price)}</div><div class="card-actions" style="margin-top:16px"><button class="btn-icon btn-edit" onclick="editProd(${p.id})">✏️</button><button class="btn-icon btn-delete" onclick="delProd(${p.id})">🗑️</button><button class="btn-icon btn-barcode" onclick="showBar('${p.sku}')">📊</button><button class="btn-icon btn-qr" onclick="showQR(${p.id})">📱</button><button class="btn-entry" onclick="entry(${p.id})">+ Entrada</button><button class="btn-exit" onclick="exit(${p.id})">- Saída</button></div></div>`).join('')}</div></div>`;
+        }
+
+        function renderMovements() {
+            return `<div class="main-content"><div class="header-actions"><div class="page-header"><h2>Movimentações</h2><p>Histórico completo</p></div><button class="btn-primary" onclick="openMov()">+ Nova</button></div><div class="card"><table class="movements-table"><thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Obs</th><th>Ações</th></tr></thead><tbody>${[...state.movements].reverse().map(m => `<tr><td>${fmtDate(m.date)}</td><td><span class="badge ${m.type === 'entrada' ? 'badge-entry' : 'badge-exit'}">${m.type.toUpperCase()}</span></td><td>${m.productName}</td><td style="font-weight:600">${m.quantity} un</td><td style="color:#9ca3af">${m.notes}</td><td><button class="btn-icon btn-delete" onclick="delMov(${m.id})">🗑️</button></td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+
+        function renderSuppliers() {
+            return `<div class="main-content"><div class="header-actions"><div class="page-header"><h2>Fornecedores</h2><p>Parceiros comerciais</p></div><button class="btn-primary" onclick="openSupp()">+ Novo</button></div><div class="products-grid">${state.suppliers.map(s => `<div class="card"><h3 class="card-title">${s.name}</h3><p class="card-description">📞 ${s.contact}</p><p style="color:#9ca3af;font-size:14px;margin-top:8px">${s.notes}</p><div class="card-actions" style="margin-top:16px"><button class="btn-icon btn-edit" onclick="editSupp(${s.id})">✏️</button><button class="btn-icon btn-delete" onclick="delSupp(${s.id})">🗑️</button></div></div>`).join('')}</div></div>`;
+        }
+
+        function renderMaterials() {
+            return `<div class="main-content"><div class="header-actions"><div class="page-header"><h2>Matéria-Prima</h2><p>Controle de insumos</p></div><button class="btn-primary" onclick="openMat()">+ Nova</button></div><div class="products-grid">${state.rawMaterials.map(m => `<div class="card"><div class="card-header"><div><span class="badge badge-sku">${m.code}</span><span class="badge ${getBadge(m.stock)}">Estoque: ${m.stock} ${m.unit}</span></div></div><h3 class="card-title">${m.name}</h3><p class="card-description">Mín: ${m.minStock} ${m.unit} | Máx: ${m.maxStock} ${m.unit}</p><div class="card-price">${fmt(m.unitPrice)}/${m.unit}</div><div class="card-actions" style="margin-top:16px"><button class="btn-icon btn-edit" onclick="editMat(${m.id})">✏️</button><button class="btn-icon btn-delete" onclick="delMat(${m.id})">🗑️</button><button class="btn-entry" onclick="matEntry(${m.id})">+ Entrada</button><button class="btn-exit" onclick="matExit(${m.id})">- Saída</button></div></div>`).join('')}</div></div>`;
+        }
+
+        function renderSidebar() {
+            return `<div class="sidebar"><div class="sidebar-header"><div class="sidebar-logo">🎆</div><div><div style="font-weight:700;font-size:18px">ERP Fogos</div><div style="color:#9ca3af;font-size:14px">${state.currentUser}</div></div></div><button class="nav-item ${state.currentPage === 'dashboard' ? 'active' : ''}" onclick="nav('dashboard')"><span>📊</span><span>Dashboard</span></button><button class="nav-item ${state.currentPage === 'products' ? 'active' : ''}" onclick="nav('products')"><span>📦</span><span>Produtos</span></button><button class="nav-item ${state.currentPage === 'movements' ? 'active' : ''}" onclick="nav('movements')"><span>📋</span><span>Movimentações</span></button><button class="nav-item ${state.currentPage === 'suppliers' ? 'active' : ''}" onclick="nav('suppliers')"><span>🏢</span><span>Fornecedores</span></button><button class="nav-item ${state.currentPage === 'materials' ? 'active' : ''}" onclick="nav('materials')"><span>🧪</span><span>Matéria-Prima</span></button><button class="nav-item logout-btn" onclick="logout()"><span>🚪</span><span>Sair</span></button></div>`;
+        }
+
+        function renderDashboard() {
+            const total = state.products.length;
+            const stock = state.products.reduce((s, p) => s + p.stock, 0);
+            const value = state.products.reduce((s, p) => s + (p.stock * p.price), 0);
+            const low = state.products.filter(p => p.stock < 50).length;
+            return `<div class="main-content"><div class="header-actions"><div class="page-header"><h2>Dashboard</h2><p>Visão geral</p></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-label">Produtos</div><div class="stat-value">${total}</div></div><div class="stat-card"><div class="stat-label">Estoque</div><div class="stat-value">${stock}</div></div><div class="stat-card"><div class="stat-label">Valor Total</div><div class="stat-value">${fmt(value)}</div></div><div class="stat-card"><div class="stat-label">Alertas</div><div class="stat-value" style="color:#ef4444">${low}</div></div></div><div class="card"><h3 style="margin-bottom:16px">Produtos Recentes</h3>${state.products.slice(0, 3).map(p => `<div style="padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><div><div style="font-weight:600">${p.name}</div><div style="color:#9ca3af;font-size:14px">${p.sku}</div></div><div style="text-align:right"><div style="color:#fbbf24;font-weight:700">${fmt(p.price)}</div><div style="font-size:14px">Estoque: ${p.stock}</div></div></div></div>`).join('')}</div><div class="card"><h3 style="margin-bottom:16px">Últimas Movimentações</h3>${state.movements.slice(-5).reverse().map(m => `<div style="padding:12px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><div><span class="badge ${m.type === 'entrada' ? 'badge-entry' : 'badge-exit'}">${m.type.toUpperCase()}</span><div style="font-weight:600;margin-top:4px">${m.productName}</div><div style="color:#9ca3af;font-size:14px">${m.notes}</div></div><div style="text-align:right"><div style="font-weight:700">${m.quantity} un</div><div style="font-size:14px;color:#9ca3af">${fmtDate(m.date)}</div></div></div></div>`).join('')}</div></div>`;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (!state.token) { app.innerHTML = renderLogin(); return; }
+            let content = '';
+            if (state.currentPage === 'dashboard') content = renderDashboard();
+            else if (state.currentPage === 'products') content = renderProducts();
+            else if (state.currentPage === 'movements') content = renderMovements();
+            else if (state.currentPage === 'suppliers') content = renderSuppliers();
+            else if (state.currentPage === 'materials') content = renderMaterials();
+            app.innerHTML = `<div class="app-container">${renderSidebar()}${content}</div>`;
+        }
+
+        window.login = () => { state.token = 'demo'; if (!load() || !state.products.length) loadDemo(); render(); }
+        window.logout = () => { if (confirm('Sair?')) { state.token = null; state.currentPage = 'dashboard'; render(); } }
+        window.nav = (p) => { state.currentPage = p; render(); }
+        window.close = () => document.querySelectorAll('.modal').forEach(m => m.remove());
+
+        window.openProd = (p = null) => {
+            const isEdit = p !== null;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">${isEdit ? 'Editar' : 'Novo'} Produto</h3><form id="f"><div class="form-group"><label>SKU</label><input name="sku" value="${isEdit ? p.sku : ''}" required></div><div class="form-group"><label>Nome</label><input name="name" value="${isEdit ? p.name : ''}" required></div><div class="form-group"><label>Descrição</label><textarea name="description" rows="3" required>${isEdit ? p.description : ''}</textarea></div><div class="form-row"><div class="form-group"><label>Estoque</label><input type="number" name="stock" value="${isEdit ? p.stock : 0}" required></div><div class="form-group"><label>Preço</label><input type="number" name="price" step="0.01" value="${isEdit ? p.price : 0}" required></div></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Salvar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const d = { sku: fd.get('sku'), name: fd.get('name'), description: fd.get('description'), stock: +fd.get('stock'), price: +fd.get('price') };
+                if (isEdit) Object.assign(state.products.find(x => x.id === p.id), d);
+                else state.products.push({id: Date.now(), ...d});
+                save(); close(); render();
+            };
+        }
+
+        window.editProd = (id) => openProd(state.products.find(p => p.id === id));
+        window.delProd = (id) => { if (confirm('Excluir?')) { state.products = state.products.filter(p => p.id !== id); save(); render(); } }
+
+        window.entry = (id) => {
+            const p = state.products.find(x => x.id === id);
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">Entrada - ${p.name}</h3><form id="f"><div class="form-group"><label>Quantidade</label><input type="number" name="quantity" min="1" required></div><div class="form-group"><label>Data</label><input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3"></textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Confirmar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const q = +fd.get('quantity');
+                p.stock += q;
+                state.movements.push({id: Date.now(), productId: id, productName: p.name, type: 'entrada', quantity: q, date: fd.get('date'), notes: fd.get('notes') || 'Entrada manual'});
+                save(); close(); render();
+            };
+        }
+
+        window.exit = (id) => {
+            const p = state.products.find(x => x.id === id);
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">Saída - ${p.name}</h3><p style="color:#9ca3af;margin-bottom:20px">Estoque: ${p.stock} un</p><form id="f"><div class="form-group"><label>Quantidade</label><input type="number" name="quantity" min="1" max="${p.stock}" required></div><div class="form-group"><label>Data</label><input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3"></textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Confirmar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const q = +fd.get('quantity');
+                if (q > p.stock) { alert('Estoque insuficiente!'); return; }
+                p.stock -= q;
+                state.movements.push({id: Date.now(), productId: id, productName: p.name, type: 'saida', quantity: q, date: fd.get('date'), notes: fd.get('notes') || 'Saída manual'});
+                save(); close(); render();
+            };
+        }
+
+        window.openMov = () => {
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">Nova Movimentação</h3><form id="f"><div class="form-group"><label>Produto</label><select name="productId" required><option value="">Selecione</option>${state.products.map(p => `<option value="${p.id}">${p.name} (${p.sku})</option>`).join('')}</select></div><div class="form-group"><label>Tipo</label><select name="type" required><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div><div class="form-group"><label>Quantidade</label><input type="number" name="quantity" min="1" required></div><div class="form-group"><label>Data</label><input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3"></textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Salvar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const id = +fd.get('productId');
+                const p = state.products.find(x => x.id === id);
+                const type = fd.get('type');
+                const q = +fd.get('quantity');
+                if (type === 'saida' && q > p.stock) { alert('Estoque insuficiente!'); return; }
+                if (type === 'entrada') p.stock += q; else p.stock -= q;
+                state.movements.push({id: Date.now(), productId: id, productName: p.name, type, quantity: q, date: fd.get('date'), notes: fd.get('notes') || 'Manual'});
+                save(); close(); render();
+            };
+        }
+
+        window.delMov = (id) => { if (confirm('Excluir?')) { state.movements = state.movements.filter(m => m.id !== id); save(); render(); } }
+
+        window.showBar = (sku) => {
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content barcode-modal"><h3 class="modal-title">Código de Barras</h3><canvas id="barcode"></canvas><button class="btn-primary" onclick="close()">Fechar</button></div>`;
+            document.body.appendChild(m);
+            setTimeout(() => JsBarcode("#barcode", sku, {format: "CODE128", width: 2, height: 100, displayValue: true}), 100);
+        }
+
+        window.showQR = (id) => {
+            const p = state.products.find(x => x.id === id);
+            const data = `SKU:${p.sku}|NOME:${p.name}|PRECO:R${p.price.toFixed(2)}|ESTOQUE:${p.stock}`;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content barcode-modal"><h3 class="modal-title">QR Code - ${p.name}</h3><div id="qrcode-container"></div><button class="btn-primary" onclick="close()">Fechar</button></div>`;
+            document.body.appendChild(m);
+            setTimeout(() => new QRCode(document.getElementById("qrcode-container"), {text: data, width: 256, height: 256, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H}), 100);
+        }
+
+        window.openSupp = (s = null) => {
+            const isEdit = s !== null;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">${isEdit ? 'Editar' : 'Novo'} Fornecedor</h3><form id="f"><div class="form-group"><label>Nome</label><input name="name" value="${isEdit ? s.name : ''}" required></div><div class="form-group"><label>Contato</label><input name="contact" value="${isEdit ? s.contact : ''}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3">${isEdit ? s.notes : ''}</textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Salvar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const d = {name: fd.get('name'), contact: fd.get('contact'), notes: fd.get('notes')};
+                if (isEdit) Object.assign(state.suppliers.find(x => x.id === s.id), d);
+                else state.suppliers.push({id: Date.now(), ...d});
+                save(); close(); render();
+            };
+        }
+
+        window.editSupp = (id) => openSupp(state.suppliers.find(s => s.id === id));
+        window.delSupp = (id) => { if (confirm('Excluir?')) { state.suppliers = state.suppliers.filter(s => s.id !== id); save(); render(); } }
+
+        window.openMat = (mat = null) => {
+            const isEdit = mat !== null;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">${isEdit ? 'Editar' : 'Nova'} Matéria-Prima</h3><form id="f"><div class="form-row"><div class="form-group"><label>Código</label><input name="code" value="${isEdit ? mat.code : ''}" required></div><div class="form-group"><label>Nome</label><input name="name" value="${isEdit ? mat.name : ''}" required></div></div><div class="form-row"><div class="form-group"><label>Estoque</label><input type="number" name="stock" value="${isEdit ? mat.stock : 0}" required></div><div class="form-group"><label>Unidade</label><input name="unit" value="${isEdit ? mat.unit : 'kg'}" required></div></div><div class="form-row"><div class="form-group"><label>Min</label><input type="number" name="minStock" value="${isEdit ? mat.minStock : 0}" required></div><div class="form-group"><label>Max</label><input type="number" name="maxStock" value="${isEdit ? mat.maxStock : 0}" required></div></div><div class="form-group"><label>Preço</label><input type="number" name="unitPrice" step="0.01" value="${isEdit ? mat.unitPrice : 0}" required></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Salvar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const d = {code: fd.get('code'), name: fd.get('name'), stock: +fd.get('stock'), unit: fd.get('unit'), minStock: +fd.get('minStock'), maxStock: +fd.get('maxStock'), unitPrice: +fd.get('unitPrice')};
+                if (isEdit) Object.assign(state.rawMaterials.find(x => x.id === mat.id), d);
+                else state.rawMaterials.push({id: Date.now(), ...d});
+                save(); close(); render();
+            };
+        }
+
+        window.editMat = (id) => openMat(state.rawMaterials.find(m => m.id === id));
+        window.delMat = (id) => { if (confirm('Excluir?')) { state.rawMaterials = state.rawMaterials.filter(m => m.id !== id); save(); render(); } }
+
+        window.matEntry = (id) => {
+            const mat = state.rawMaterials.find(x => x.id === id);
+            if (!mat) return;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">Entrada - ${mat.name}</h3><form id="f"><div class="form-group"><label>Quantidade (${mat.unit})</label><input type="number" name="quantity" min="1" step="0.01" required></div><div class="form-group"><label>Data</label><input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3"></textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Confirmar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const q = +new FormData(e.target).get('quantity');
+                if (q <= 0) { alert('Quantidade inválida!'); return; }
+                mat.stock = +mat.stock + q;
+                save(); close(); render();
+                alert(`Entrada: ${q} ${mat.unit}\nNovo estoque: ${mat.stock} ${mat.unit}`);
+            };
+        }
+
+        window.matExit = (id) => {
+            const mat = state.rawMaterials.find(x => x.id === id);
+            if (!mat) return;
+            const m = document.createElement('div');
+            m.className = 'modal';
+            m.innerHTML = `<div class="modal-content"><h3 class="modal-title">Saída - ${mat.name}</h3><p style="color:#9ca3af;margin-bottom:20px">Estoque: ${mat.stock} ${mat.unit}</p><form id="f"><div class="form-group"><label>Quantidade (${mat.unit})</label><input type="number" name="quantity" min="0.01" max="${mat.stock}" step="0.01" required></div><div class="form-group"><label>Data</label><input type="date" name="date" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Obs</label><textarea name="notes" rows="3"></textarea></div><div class="btn-group"><button type="button" class="btn-cancel" onclick="close()">Cancelar</button><button type="submit" class="btn-save">Confirmar</button></div></form></div>`;
+            document.body.appendChild(m);
+            document.getElementById('f').onsubmit = (e) => {
+                e.preventDefault();
+                const q = +new FormData(e.target).get('quantity');
+                if (q <= 0) { alert('Quantidade inválida!'); return; }
+                if (q > +mat.stock) { alert('Estoque insuficiente!'); return; }
+                mat.stock = +mat.stock - q;
+                save(); close(); render();
+                alert(`Saída: ${q} ${mat.unit}\nNovo estoque: ${mat.stock} ${mat.unit}`);
+            };
+        }
+
+        window.exportExcel = exportExcel;
+        window.importExcel = importExcel;
+
+        if (load() && state.token) render(); else render();
+    </script>
+</body>
+</html>
